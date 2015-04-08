@@ -12,7 +12,7 @@ var csv = require('csv');
 var mongoose = require('mongoose');
 var Code = require('./models/code.js');
 
-mongoose.connect(process.env.MONGO_URL || process.env.argv[3]);
+mongoose.connect(process.argv[3] || process.env.MONGO_URL); 
 
 var file = fs.readFileSync(process.argv[2], {encoding: 'utf8'});
 
