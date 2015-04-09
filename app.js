@@ -179,6 +179,15 @@ app.get('/go', function(req, res) {
   res.render('go_contribute');
 });
 
+app.use(function(req, res, next) {
+  res.status(404).render('404');
+});
+
+app.use(function(err, req, res, next) {
+  console.error(err.stack);
+  res.status(500).render('500');
+});
+
 server.listen(app.get('port'), function() {
   console.log('Running on port %s', app.get('port'));
 });
