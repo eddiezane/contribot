@@ -55,7 +55,7 @@ app.post('/webhooks/github', ghSigVerify, function(req, res) {
 
     // User is a collaborator
     if (statusCode == 204) {
-      return console.log('user ' + username + ' is collab');
+      console.log('user ' + username + ' is collab');
     }
 
     Contributor.findById(username, function(err, contributor) {
@@ -107,7 +107,8 @@ app.get('/oauth/github', function(req, res) {
         }
 
         if (!contributor) {
-          return console.log('contributor not found during oauth');
+          console.log('contributor not found during oauth', user);
+          return res.end(); // TODO: Template - you gotta help first
         }
 
         // They don't belong here
