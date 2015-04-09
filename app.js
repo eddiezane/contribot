@@ -13,13 +13,13 @@ var Contributor = require('./models/contributor.js');
 mongoose.connect(process.env.MONGO_URL); 
 
 app.set('port', process.env.PORT || 3000);
+app.set('view engine', 'hjs');
 
 app.use(express.static('public'));
 app.use(bodyParser.json());
 
 app.get('/', function(req, res) {
-  // res.send('https://github.com/login/oauth/authorize?client_id=' + process.env.GITHUB_CLIENT_ID);
-  res.sendFile(__dirname + '/views/index.html');
+  res.render('index', {github_client_id: process.env.GITHUB_CLIENT_ID});
 });
 
 // Inbound gh webook. TODO: Abstract and clean up
@@ -44,12 +44,13 @@ app.post('/webhooks/github', ghSigVerify, function(req, res) {
   var owner = req.body.repository.owner.login;
   var repo  = req.body.repository.name;
 
+  // Check to see if the user is a collaborator of this repo
   ghRequests.getCollaborator(owner, repo, username, function(err, statusCode) {
-    // User is a collaborator
     if (err) {
       return console.error(err);
     }
 
+    // User is a collaborator
     if (statusCode == 204) {
       return console.log('user ' + username + ' is collab');
     }
