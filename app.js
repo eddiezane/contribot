@@ -4,6 +4,7 @@ var server      = require('http').createServer(app);
 var bodyParser  = require('body-parser');
 var mongoose    = require('mongoose');
 var request     = require('request');
+var hbs         = require('hbs');
 var ghSigVerify = require('./lib/github-sig-verify.js');
 var ghRequests  = require('./lib/github-requests.js');
 var Code        = require('./models/code.js');
@@ -16,13 +17,14 @@ if (app.get('env') === 'development') {
 mongoose.connect(process.env.MONGO_URL); 
 
 app.set('port', process.env.PORT || 3000);
-app.set('view engine', 'hjs');
+app.set('view engine', 'hbs');
+hbs.registerPartials(__dirname + '/views/partials');
 
 app.use(express.static('public'));
 app.use(bodyParser.json());
 
 app.get('/', function(req, res) {
-  res.render('index', {github_client_id: process.env.GITHUB_CLIENT_ID});
+  res.render('home', {github_client_id: process.env.GITHUB_CLIENT_ID});
 });
 
 // Inbound gh webook. TODO: Abstract and clean up
@@ -89,26 +91,29 @@ app.get('/oauth/github', function(req, res) {
   var auth_code = req.query.code;
   ghRequests.postGithubOauth(auth_code, function(err, body) {
     if (err) {
-      return console.error(err);
+      console.error(err);
+      return res.status(500).render('500');
     }
 
     var access_token = body.access_token;
 
     ghRequests.getUsername(access_token, function(err, resp) {
       if (err) {
-        return console.error(err);
+        console.error(err);
+        return res.status(500).render('500');
       }
 
       var user = resp.login;
 
       Contributor.findById(user, function(err, contributor) {
         if (err) {
-          return console.error(err);
+          console.error(err);
+          return res.status(500).render('500');
         }
 
         if (!contributor) {
           console.log('contributor not found during oauth', user);
-          return res.end(); // TODO: Template - you gotta help first
+          return res.redirect(302, '/go');
         }
 
         // They don't belong here
@@ -124,14 +129,16 @@ app.get('/oauth/github', function(req, res) {
 
           contributor.save(function(err) {
             if (err) {
-              return console.error(err);
+              console.error(err);
+              return res.status(500).render('500');
             }
 
             pf_code.used = true;
 
             pf_code.save(function(err) {
               if (err) {
-                return console.error(err);
+                console.error(err);
+                return res.status(500).render('500');
               }
 
               return res.redirect(307, pf_code._id);
@@ -149,12 +156,12 @@ app.get('/redeem', function(req, res) {
   Contributor.findOne({github_token: access_token}, function(err, contributor) {
     if (err) {
       console.error(err);
-      return res.send('bad'); //TODO: Template
+      return res.status(500).render('500');
     }
 
     if (!contributor) {
       console.log('no user was found for access_token', access_token);
-      return res.send('something went wrong');
+      return res.status(500).render('500');
     }
 
     var statusCode = contributor.status_code;
@@ -168,6 +175,9 @@ app.get('/redeem', function(req, res) {
   });
 });
 
+app.get('/go', function(req, res) {
+  res.render('go_contribute');
+});
 
 server.listen(app.get('port'), function() {
   console.log('Running on port %s', app.get('port'));
