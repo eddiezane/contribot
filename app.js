@@ -57,7 +57,7 @@ app.post('/webhooks/github', ghSigVerify, function(req, res) {
 
     // User is a collaborator
     if (statusCode == 204) {
-      console.log('user ' + username + ' is collab');
+      return console.log('user ' + username + ' is collab');
     }
 
     Contributor.findById(username, function(err, contributor) {
