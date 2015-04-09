@@ -30,7 +30,7 @@ app.get('/', function(req, res) {
 // Inbound gh webook. TODO: Abstract and clean up
 app.post('/webhooks/github', ghSigVerify, function(req, res) {
   // Only want pull requests
-  if (req.header('X-Github-Event') !== 'pull_request') res.end();
+  if (req.header('X-Github-Event') !== 'pull_request') return res.end();
 
   // We're done with the request, return 200
   res.end();
