@@ -145,8 +145,14 @@ app.get('/redeem', function(req, res) {
   Contributor.findOne({github_token: access_token}, function(err, contributor) {
     if (err) {
       console.error(err);
-      res.send('bad');
+      return res.send('bad'); //TODO: Template
     }
+
+    if (!contributor) {
+      console.log('no user was found for access_token', access_token);
+      return res.send('something went wrong');
+    }
+
 
     var statusCode = contributor.status_code;
     if (statusCode !== 2 && statusCode !== 3) {
