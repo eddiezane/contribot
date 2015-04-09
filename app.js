@@ -135,7 +135,6 @@ app.get('/oauth/github', function(req, res) {
 
               return res.redirect(307, pf_code._id);
             });
-
           });
         });
       });
@@ -144,7 +143,8 @@ app.get('/oauth/github', function(req, res) {
 });
 
 app.get('/redeem', function(req, res) {
-  var access_token = req.query.access_token;
+  var access_token = req.query.access_token; // FIXME: Cookie this?
+
   Contributor.findOne({github_token: access_token}, function(err, contributor) {
     if (err) {
       console.error(err);
@@ -156,13 +156,14 @@ app.get('/redeem', function(req, res) {
       return res.send('something went wrong');
     }
 
-
     var statusCode = contributor.status_code;
+
+    // They don't have a pf code yet
     if (statusCode !== 2 && statusCode !== 3) {
-      return res.redirect(307, '/');
+      return res.redirect(307, '/'); // TODO: Template
     }
 
-    res.redirect(307, contributor._code);
+    res.redirect(307, contributor._code); // TODO: Or die?
   });
 });
 
