@@ -4,11 +4,14 @@ var server      = require('http').createServer(app);
 var bodyParser  = require('body-parser');
 var mongoose    = require('mongoose');
 var request     = require('request');
-var dotenv      = require('dotenv').load();
 var ghSigVerify = require('./lib/github-sig-verify.js');
 var ghRequests  = require('./lib/github-requests.js');
 var Code        = require('./models/code.js');
 var Contributor = require('./models/contributor.js');
+
+if (app.get('env') === 'development') {
+  require('dotenv').load();
+}
 
 mongoose.connect(process.env.MONGO_URL); 
 
